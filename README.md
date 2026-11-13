@@ -24,6 +24,7 @@ This app treats that line as a working hypothesis and tests it through every len
 | ✝ | Biblical Numbers | Scripture's numbers, with sources |
 | 🔢 | Numerology | Life path and expression numbers, with a century-wide control |
 | ⚡ | Electricity | The numbers of electric power |
+| ❓ | Question Everything | Scans 100+ world numbers through 9 lenses at once, finds hidden 3·6·9 ratios, and interrogates every pattern for chance, units and cherry-picking |
 
 The sidebar changes the counting base. If a pattern disappears in base 12, it belongs to how we count, not to the universe.
 
