@@ -229,7 +229,7 @@ def core_checks():
 st.title("If They Only Knew")
 st.markdown('<div class="hero">“If you only knew the magnificence of the 3, 6 and 9…” — attributed to Nikola Tesla.<br>'
             'Working premise: the line points to something real. Every claim here is tested, '
-            'run against a control, and given a verdict.</div>', unsafe_allow_html=True)
+            'run against a control, and given a verdict. Open ❓ Question Everything to scan the whole world at once.</div>', unsafe_allow_html=True)
 
 with st.sidebar:
     st.header("Lens settings")
@@ -244,7 +244,7 @@ if "extra_sky" not in st.session_state:
 tabs = st.tabs(["🧷 The Wall", "Ⅰ The Family", "Ⅱ The Vortex", "Ⅲ Sequence Lab", "Ⅳ Nine-Box Grid",
                 "Ⅴ Tesla's Field", "Ⅵ Harmony", "Ⅶ As Above, So Below", "Ⅷ Triangles",
                 "Ⅸ Spheres & Domes", "Ⅹ Maps", "Ⅺ Calendar Map", "Ⅻ Living Patterns", "🔎 Search Engine", "✝ Biblical Numbers", "🔢 Numerology",
-                "⚡ Electricity"])
+                "⚡ Electricity", "❓ Question Everything"])
 
 # ======================= THE WALL =======================
 with tabs[0]:
@@ -956,6 +956,267 @@ with tabs[16]:
     number_board(ELEC)
     finding("The strongest electrical link to 3 isn't a coincidence of digits. Three phases, 120° apart, "
             "are the smallest even set that makes a smooth spinning field. See Lens Ⅴ to watch it.")
+
+# ======================= QUESTION EVERYTHING =======================
+WORLD = [
+    # (name, value, unit, category, kind)
+    ("Bones in the adult body", "206", "", "Human body", "nature"),
+    ("Vertebrae (typical count)", "33", "", "Human body", "nature"),
+    ("Chromosomes", "46", "", "Human body", "nature"),
+    ("Chromosome pairs", "23", "", "Human body", "nature"),
+    ("Adult teeth", "32", "", "Human body", "nature"),
+    ("Baby teeth", "20", "", "Human body", "nature"),
+    ("Ribs", "24", "", "Human body", "nature"),
+    ("Chambers of the heart", "4", "", "Human body", "nature"),
+    ("Body temperature", "37", "°C", "Human body", "nature"),
+    ("Body temperature (Fahrenheit)", "98.6", "°F", "Human body", "nature"),
+    ("Weeks of pregnancy", "40", "", "Human body", "nature"),
+    ("Sides of a honeycomb cell", "6", "", "Life", "nature"),
+    ("Arms of a snowflake", "6", "", "Life", "nature"),
+    ("Legs of an insect", "6", "", "Life", "nature"),
+    ("Legs of a spider", "8", "", "Life", "nature"),
+    ("DNA bases", "4", "", "Life", "nature"),
+    ("Bases in a codon", "3", "", "Life", "nature"),
+    ("Standard amino acids", "20", "", "Life", "nature"),
+    ("Carbon's atomic number", "6", "", "Physics & chemistry", "nature"),
+    ("Quarks in a proton", "3", "", "Physics & chemistry", "nature"),
+    ("Generations of matter particles", "3", "", "Physics & chemistry", "nature"),
+    ("Dimensions of space", "3", "", "Physics & chemistry", "nature"),
+    ("Fine-structure constant (inverse)", "137.036", "", "Physics & chemistry", "nature"),
+    ("Proton-to-electron mass ratio", "1836.15", "", "Physics & chemistry", "nature"),
+    ("Avogadro's number", "6.02214076", "× 10²³", "Physics & chemistry", "nature"),
+    ("Planck's constant", "6.62607015", "× 10⁻³⁴ J·s", "Physics & chemistry", "nature"),
+    ("Gravitational constant", "6.674", "× 10⁻¹¹", "Physics & chemistry", "nature"),
+    ("Absolute zero", "273.15", "°C below zero", "Physics & chemistry", "nature"),
+    ("Sun's surface temperature", "5772", "K", "Sky", "nature"),
+    ("Planets", "8", "", "Sky", "nature"),
+    ("Age of the Earth", "4.54", "billion years", "Sky", "nature"),
+    ("Age of the universe", "13.8", "billion years", "Sky", "nature"),
+    ("Sidereal day", "86164", "s", "Sky", "nature"),
+    ("Mount Everest", "8849", "m", "Earth", "nature"),
+    ("Mount Everest (feet)", "29032", "ft", "Earth", "nature"),
+    ("Challenger Deep", "10935", "m", "Earth", "nature"),
+    ("Continents", "7", "", "Earth", "human-made"),
+    ("Oceans", "5", "", "Earth", "human-made"),
+    ("Semitones in an octave", "12", "", "Music", "human-made"),
+    ("Pi", "3.14159", "", "Mathematics", "math"),
+    ("Golden ratio", "1.61803", "", "Mathematics", "math"),
+    ("e", "2.71828", "", "Mathematics", "math"),
+    ("Tesla born", "1856", "", "Tesla", "history"),
+    ("Tesla died", "1943", "", "Tesla", "history"),
+    ("Wardenclyffe Tower begun", "1901", "", "Tesla", "history"),
+]
+
+
+def sig_digits(val):
+    d = "".join(ch for ch in str(val) if ch.isdigit()).lstrip("0")
+    return d or "0"
+
+
+def build_pool(extra_lines):
+    pool = [(n, v, u, c, k) for n, v, u, c, k in WORLD]
+    for name, metric, mu, imp, iu, indep in SKY:
+        pool.append((name, metric, mu, "Sky & Earth", "nature" if indep else "human-made"))
+        if imp:
+            pool.append((f"{name} (imperial)", imp, iu, "Sky & Earth", "nature"))
+    for name, v, u, src in BIBLE:
+        pool.append((name, v, u, "Scripture", "scripture"))
+    for name, v, u, kind in ELEC:
+        pool.append((name, v, u, "Electricity", "nature" if kind == "nature" else "human-made"))
+    pool += extra_lines
+    return pool
+
+
+TRI_SET = {k * (k + 1) // 2 for k in range(1, 20000)}
+FIB_SET, _a, _b = set(), 1, 2
+while _a < 10 ** 15:
+    FIB_SET.add(_a)
+    _a, _b = _b, _a + _b
+
+QE_LENSES = {
+    "Digital root is 3, 6 or 9": (lambda D: digit_root_of_text(D) in TARGETS, False),
+    "Digital root is exactly 9": (lambda D: digit_root_of_text(D) == 9, False),
+    "Starts with 3, 6 or 9": (lambda D: D[0] in "369", False),
+    "Ends with 3, 6 or 9": (lambda D: D[-1] in "369", False),
+    "Every digit is 3, 6, 9 or 0": (lambda D: set(D) <= set("3690"), False),
+    "Contains 369 or 963": (lambda D: "369" in D or "963" in D, False),
+    "Reads the same backwards": (lambda D: len(D) > 1 and D == D[::-1], False),
+    "Is a triangular number": (lambda D: int(D) in TRI_SET, True),
+    "Is a Fibonacci number": (lambda D: int(D) in FIB_SET, True),
+}
+
+
+def control_digits(L, rng):
+    """A fake measurement: log-uniform, like real-world numbers (Benford's law), same length."""
+    x = 10 ** rng.uniform(0, 1)
+    return f"{x:.{max(L - 1, 0)}f}".replace(".", "")[:L].lstrip("0") or "1"
+
+
+@st.cache_data
+def scan(pool, sims=400):
+    rng = random.Random(369)
+    results = []
+    for lens, (fn, int_only) in QE_LENSES.items():
+        hits, expected, n, who = 0, 0.0, 0, []
+        for name, v, u, c, k in pool:
+            if int_only and "." in v:
+                continue
+            D = sig_digits(v)
+            n += 1
+            if fn(D):
+                hits += 1
+                who.append(name)
+            expected += sum(fn(control_digits(len(D), rng)) for _ in range(sims)) / sims
+        rate = expected / n if n else 0
+        p = binom_tail(hits, n, rate) if n and 0 < rate < 1 else (0.0 if hits and rate == 0 else 1.0)
+        results.append(dict(lens=lens, n=n, hits=hits, expected=expected, p=p, who=who))
+    return results
+
+
+@st.cache_data
+def ratio_scan(values, targets, tol, sims=200):
+    vals = [x for x in values if x > 0]
+
+    def count(vs):
+        c = 0
+        for a, b in itertools.combinations(vs, 2):
+            r = max(a, b) / min(a, b)
+            if any(abs(r - t) / t <= tol for t in targets):
+                c += 1
+        return c
+
+    def fake(x, rng):
+        # same size and same rounding as the real number, so whole numbers stay whole
+        e = math.floor(math.log10(x))
+        L = len(sig_digits(repr(x).rstrip("0").rstrip(".")))
+        y = 10 ** (e + rng.uniform(0, 1))
+        step = 10 ** (math.floor(math.log10(y)) - L + 1)
+        return max(step, round(y / step) * step)
+
+    obs = count(vals)
+    rng = random.Random(9)
+    ctrl = [count([fake(x, rng) for x in vals]) for _ in range(sims)]
+    return obs, ctrl
+
+
+with tabs[17]:
+    st.subheader("❓ Question Everything")
+    st.write("This engine pours every number in the app, plus measurements from across the world, through every "
+             "lens at once. Then it questions each pattern it finds: could chance, units or cherry-picking explain it?")
+
+    if "qe_extra" not in st.session_state:
+        st.session_state.qe_extra = []
+    pool_all = build_pool(st.session_state.qe_extra)
+
+    c1, c2 = st.columns(2)
+    cats = sorted({p[3] for p in pool_all})
+    kinds = sorted({p[4] for p in pool_all})
+    pick_c = c1.multiselect("Parts of the world", cats, default=cats)
+    pick_k = c2.multiselect("Kinds of number", kinds, default=kinds,
+                            help="Human-made numbers (like 360° or 24 hours) were chosen by people, "
+                                 "so they can't prove anything about nature.")
+    pool = tuple(p for p in pool_all if p[3] in pick_c and p[4] in pick_k)
+    st.caption(f"Scanning {len(pool)} numbers through {len(QE_LENSES)} lenses.")
+
+    if len(pool) < 5:
+        st.warning("Pick more of the world to scan: at least 5 numbers.")
+    else:
+        res = scan(pool)
+        nl = len(res)
+        for r in res:
+            r["p_adj"] = min(1.0, r["p"] * nl)
+            if r["p_adj"] < 0.05:
+                r["verdict"], r["col"] = "PATTERN SURVIVES", GREEN
+            elif r["p"] < 0.05:
+                r["verdict"], r["col"] = "LOOKS REAL, BUT…", AMBER
+            else:
+                r["verdict"], r["col"] = "CHANCE", GREY
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(y=[r["lens"] for r in res], x=[r["expected"] for r in res], orientation="h",
+                             name="What chance predicts", marker_color="#3a3226"))
+        fig.add_trace(go.Bar(y=[r["lens"] for r in res], x=[r["hits"] for r in res], orientation="h",
+                             name="What the world shows", marker_color=[r["col"] if r["col"] != GREY else GOLD
+                                                                        for r in res]))
+        fig.update_layout(barmode="group", xaxis_title="Numbers that fit", yaxis_autorange="reversed",
+                          legend=dict(orientation="h", y=-0.15))
+        st.plotly_chart(style(fig, 520))
+
+        st.dataframe([{"Lens": r["lens"], "Fit": f"{r['hits']} of {r['n']}", "Chance expects": round(r["expected"], 1),
+                       "Odds by luck": f"{r['p']:.1%}", "After questioning": f"{r['p_adj']:.1%}",
+                       "Verdict": r["verdict"]} for r in res], hide_index=True)
+        finding("“After questioning” corrects for testing many lenses at once. Look at enough patterns and "
+                "some will fit by luck, so each one has to clear a higher bar.")
+
+        st.markdown("### Question a pattern")
+        best = sorted(res, key=lambda r: r["p"])
+        choice = st.selectbox("Pick a lens to interrogate", [r["lens"] for r in best])
+        r = next(x for x in res if x["lens"] == choice)
+        hit_rows = [p for p in pool if p[0] in r["who"]]
+        st.write(f"**{len(hit_rows)} numbers fit:** " + ", ".join(f"{p[0]} ({p[1]})" for p in hit_rows[:40])
+                 + ("…" if len(hit_rows) > 40 else ""))
+        if hit_rows:
+            human = sum(p[4] in ("human-made", "scripture", "history") for p in hit_rows)
+            unit_dep = sum(p[2] in ("km", "mi", "ft", "m", "°F", "°C", "mi/s", "km/s", "s", "K") for p in hit_rows)
+            short = sum(len(sig_digits(p[1])) <= 2 for p in hit_rows)
+            checks = [
+                ("Is it beyond chance?", r["p"] < 0.05, f"Odds by luck: {r['p']:.1%}"),
+                ("Does it survive testing many lenses?", r["p_adj"] < 0.05, f"Corrected odds: {r['p_adj']:.1%}"),
+                ("Is it mostly nature, not people's choices?", human <= len(hit_rows) / 2,
+                 f"{human} of {len(hit_rows)} are human-made, scriptural or historical"),
+                ("Does it avoid depending on units?", unit_dep <= len(hit_rows) / 2,
+                 f"{unit_dep} of {len(hit_rows)} change if you switch units"),
+                ("Is it more than tiny numbers?", short <= len(hit_rows) / 2,
+                 f"{short} of {len(hit_rows)} have only one or two digits, which fit patterns easily"),
+            ]
+            passed = sum(ok for _, ok, _ in checks)
+            for q_, ok, why in checks:
+                st.markdown(f"{'🟢' if ok else '🔴'} **{q_}** {why}")
+            finding(f"This pattern passes {passed} of {len(checks)} questions. "
+                    + ("It's a real lead worth publishing in the repo." if passed == len(checks) else
+                       "Keep it on the wall as amber until the red questions are answered."))
+
+        st.markdown("### Hidden ratios")
+        st.write("Every pair of numbers is divided, big by small, looking for ratios of 3, 6 or 9. "
+                 "The control swaps each number for a random one of the same size and the same rounding, "
+                 "so whole numbers stay whole and the test stays fair.")
+        c1, c2 = st.columns(2)
+        tg = c1.multiselect("Ratios to hunt for", [3, 6, 9, 1.5, 2, 1.618], default=[3, 6, 9])
+        tol = c2.slider("How close counts as a match (%)", 0.1, 2.0, 0.5, step=0.1) / 100
+        values = tuple(float(p[1]) for p in pool)
+        if tg:
+            obs, ctrl = ratio_scan(values, tuple(tg), tol)
+            beat = sum(c >= obs for c in ctrl) / len(ctrl)
+            hist = go.Figure(go.Histogram(x=ctrl, marker_color="#4a3f2a", name="Random worlds"))
+            hist.add_vline(x=obs, line=dict(color=GOLD, width=3), annotation_text="our world")
+            hist.update_layout(xaxis_title="Matching pairs", yaxis_title="Random worlds")
+            st.plotly_chart(style(hist, 320))
+            finding(f"Our world has {obs} matching pairs. Random worlds matched or beat that {beat:.0%} of the time. "
+                    + ("That's a genuine signal." if beat < 0.05 else "So far, chance explains it."))
+            pairs = []
+            for (n1, v1, *_), (n2, v2, *_) in itertools.combinations(pool, 2):
+                a, b = float(v1), float(v2)
+                if a > 0 and b > 0:
+                    rr_ = max(a, b) / min(a, b)
+                    for t in tg:
+                        if abs(rr_ - t) / t <= tol:
+                            big, small = (n1, n2) if a >= b else (n2, n1)
+                            pairs.append({"Bigger": big, "Smaller": small, "Ratio": round(rr_, 4), "Near": t})
+            with st.expander(f"See all {len(pairs)} matching pairs"):
+                st.dataframe(pairs, hide_index=True)
+
+        with st.form("qe_add", clear_on_submit=True):
+            st.write("Feed the engine your own numbers, one per line, like `Height of the Great Pyramid: 146.6`")
+            txt = st.text_area("Your numbers")
+            kd = st.selectbox("They are", ["nature", "human-made", "scripture", "history", "math"])
+            if st.form_submit_button("Add and rescan") and txt:
+                for line in txt.splitlines():
+                    if ":" in line:
+                        nme, val = line.rsplit(":", 1)
+                        val = "".join(ch for ch in val if ch.isdigit() or ch == ".").strip(".")
+                        if any(ch.isdigit() for ch in val):
+                            st.session_state.qe_extra.append((nme.strip(), val, "", "Your numbers", kd))
+                st.rerun()
 
 st.markdown("---")
 st.caption("If They Only Knew · built by Erin Rae Toppe · every claim open to testing")
