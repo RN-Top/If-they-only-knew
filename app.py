@@ -9,6 +9,7 @@ import datetime as dt
 import itertools
 from collections import Counter
 
+import numpy as np  # load numpy fully before plotly uses it (fixes the AttributeError on Streamlit Cloud)
 import streamlit as st
 import plotly.graph_objects as go
 
