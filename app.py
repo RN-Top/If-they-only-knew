@@ -11,6 +11,7 @@ from collections import Counter
 
 import numpy as np  # load numpy fully before plotly uses it (fixes the AttributeError on Streamlit Cloud)
 import streamlit as st
+import streamlit.components.v1 as components
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="If They Only Knew", page_icon="🔺", layout="wide")
@@ -69,10 +70,22 @@ def binom_tail(k, n, p):
 
 
 def style(fig, h=420):
-    fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+    fig.update_layout(template="plotly_dark", paper_bgcolor="#15120d", plot_bgcolor="rgba(0,0,0,0)",
                       height=h, margin=dict(l=10, r=10, t=40, b=10),
                       font=dict(family="Special Elite, monospace", color="#e8e2d0"))
     return fig
+
+
+def show_chart(fig):
+    """Draw a chart inside its own small web page, using plotly's own script from its CDN.
+    This skips Streamlit's built-in chart loader, which failed on phones with
+    'TypeError: Importing a module script failed'."""
+    h = fig.layout.height or 420
+    html = fig.to_html(full_html=False, include_plotlyjs="cdn",
+                       config={"responsive": True, "displaylogo": False})
+    components.html(
+        '<style>html,body{margin:0;padding:0;background:#15120d;}</style>' + html,
+        height=int(h) + 10, scrolling=False)
 
 
 def finding(text):
@@ -295,7 +308,7 @@ with tabs[0]:
                              marker=dict(size=80, color=GOLD, line=dict(color="#f3ecd8", width=3))))
     fig.update_xaxes(visible=False, range=[-1.5, 1.5])
     fig.update_yaxes(visible=False, range=[-1.4, 1.4], scaleanchor="x")
-    st.plotly_chart(style(fig, 520))
+    show_chart(style(fig, 520))
     st.caption("Gold threads join proven claims. Red string runs to every claim still under test.")
 
     cols = st.columns(3)
@@ -316,7 +329,7 @@ with tabs[1]:
     fig = go.Figure(go.Bar(x=[str(r) for r in range(1, BASE)], y=[counts.get(r, 0) for r in range(1, BASE)],
                            marker_color=[GOLD if r in reach else GREY for r in range(1, BASE)]))
     fig.update_layout(xaxis_title="Digital root", yaxis_title="How many multiples land here")
-    st.plotly_chart(style(fig))
+    show_chart(style(fig))
     finding(f"In base {BASE}, every multiple of {d} collapses into {len(reach)} of the {BASE - 1} possible roots: "
             f"{', '.join(map(str, reach))}.")
 
@@ -369,7 +382,7 @@ with tabs[2]:
     fig.update_xaxes(visible=False)
     fig.update_yaxes(visible=False, scaleanchor="x")
     fig.update_layout(legend=dict(orientation="h", y=-0.05))
-    st.plotly_chart(style(fig, 560))
+    show_chart(style(fig, 560))
     finding(f"Path: {' → '.join(map(str, path))}. "
             + (f"It never touches {', '.join(map(str, never))}." if never else "It touches every point."))
     if BASE == 10 and m == 2:
@@ -414,7 +427,7 @@ with tabs[3]:
                                        colorscale=[[0, "#1b1813"], [1, GOLD]], showscale=False))
             fig.update_yaxes(autorange="reversed", visible=False)
             fig.update_xaxes(visible=False)
-            st.plotly_chart(style(fig, 360))
+            show_chart(style(fig, 360))
             finding(f"As a nine-box grid. Rows: {sums[0:3]}, columns: {sums[3:6]}, diagonals: {sums[6:8]}. "
                     + ("Every line balances." if len(set(sums)) == 1 else "Not every line balances."))
 
@@ -432,7 +445,7 @@ with tabs[4]:
                                colorscale=[[0, "#1b1813"], [0.5, "#4a3f2a"], [1, GOLD]], showscale=False, zmin=0, zmax=1))
     fig.update_yaxes(autorange="reversed", visible=False)
     fig.update_xaxes(visible=False)
-    st.plotly_chart(style(fig, 380))
+    show_chart(style(fig, 380))
     centre5 = all(sq[1][1] == 5 for sq in squares)
     apart = all(no_shared_line(sq) for sq in squares)
     finding(f"Checked across all {len(squares)} squares: the centre is always 5 ({'true' if centre5 else 'false'}), "
@@ -455,7 +468,7 @@ with tabs[5]:
     wave.add_vline(x=angle, line=dict(color=GOLD, dash="dot"))
     wave.update_layout(xaxis_title="Degrees through the cycle", yaxis_title="Current",
                        legend=dict(orientation="h", y=-0.25))
-    st.plotly_chart(style(wave, 340))
+    show_chart(style(wave, 340))
 
     fx, fy = field_vector(phases, angle)
     trail = [field_vector(phases, t) for t in range(0, 361, 3)]
@@ -468,7 +481,7 @@ with tabs[5]:
     vec.update_xaxes(range=[-lim - 0.5, lim + 0.5], visible=False)
     vec.update_yaxes(range=[-lim, lim], visible=False, scaleanchor="x")
     vec.update_layout(legend=dict(orientation="h", y=-0.05))
-    st.plotly_chart(style(vec, 420))
+    show_chart(style(vec, 420))
 
     lo, hi = field_range(phases)
     if phases == 2:
@@ -500,7 +513,7 @@ with tabs[6]:
     fig = go.Figure(go.Bar(x=[f"{r['Harmonic']}: {r['Note']}" for r in harm], y=[r["Frequency (Hz)"] for r in harm],
                            marker_color=[GOLD if r["Harmonic"] in TARGETS else GREY for r in harm]))
     fig.update_layout(yaxis_title="Hz")
-    st.plotly_chart(style(fig, 360))
+    show_chart(style(fig, 360))
     st.dataframe(harm, hide_index=True)
     finding(f"The 3rd and 6th harmonics are the same note, an octave apart ({harm[2]['Note']} and {harm[5]['Note']}). "
             f"The 9th ({harm[8]['Note']}) is a perfect fifth above the 3rd, because 9 = 3 × 3. "
@@ -524,7 +537,7 @@ with tabs[7]:
                            marker_color=[GOLD if k in TARGETS else GREY for k in range(1, 10)]))
     fig.add_hline(y=n_rows / 9, line=dict(color=RED, dash="dot"), annotation_text="chance")
     fig.update_layout(xaxis_title="Digital root", yaxis_title="Measurements")
-    st.plotly_chart(style(fig, 340))
+    show_chart(style(fig, 340))
     verdict = "beats chance. Worth a closer look." if p < 0.05 else "is within what chance would give."
     finding(f"{hits} of {n_rows} land on 3, 6 or 9 ({hits / max(n_rows, 1):.0%}). Chance alone gives about 33%. "
             f"Odds of doing this well by luck: {p:.0%}. This {verdict}")
@@ -562,13 +575,13 @@ with tabs[8]:
         off += k + 1.5
     fig.update_xaxes(visible=False)
     fig.update_yaxes(visible=False, scaleanchor="x")
-    st.plotly_chart(style(fig, 320))
+    show_chart(style(fig, 320))
     tn = st.slider("Check this many triangular numbers", 9, 9000, 900, step=9)
     counts = Counter(droot(k * (k + 1) // 2, BASE) for k in range(1, tn + 1))
     fig = go.Figure(go.Bar(x=[str(r) for r in range(1, BASE)], y=[counts.get(r, 0) for r in range(1, BASE)],
                            marker_color=[GOLD if r in TARGETS else GREY for r in range(1, BASE)]))
     fig.update_layout(xaxis_title="Digital root", yaxis_title="Triangular numbers")
-    st.plotly_chart(style(fig, 320))
+    show_chart(style(fig, 320))
     share = sum(v for r, v in counts.items() if r in TARGETS) / tn
     finding(f"Roots that ever appear: {', '.join(map(str, sorted(counts)))}. "
             f"Share landing on 3, 6 or 9: {share:.0%} (chance would be 33%).")
@@ -604,7 +617,7 @@ with tabs[9]:
     ])
     fig.update_layout(scene=dict(xaxis_visible=False, yaxis_visible=False, zaxis_visible=False,
                                  aspectmode="data", bgcolor="rgba(0,0,0,0)"))
-    st.plotly_chart(style(fig, 520))
+    show_chart(style(fig, 520))
     rows = []
     for f in range(1, 10):
         faces, edges, verts = 20 * f * f, 30 * f * f, 10 * f * f + 2
@@ -638,7 +651,7 @@ with tabs[10]:
                     bgcolor="rgba(0,0,0,0)",
                     lataxis=dict(showgrid=True, dtick=9, gridcolor="rgba(242,193,78,.18)"),
                     lonaxis=dict(showgrid=True, dtick=9, gridcolor="rgba(242,193,78,.18)"))
-    st.plotly_chart(style(geo, 520))
+    show_chart(style(geo, 520))
     st.caption("Grid lines every 9 degrees. Gold sites reduce to 3, 6 or 9.")
     st.dataframe([{"Site": s[0], "Latitude": s[1], "Longitude": s[2], "Digital root": r,
                    "3·6·9": "✦" if r in TARGETS else ""} for s, r in zip(sites, roots)], hide_index=True)
@@ -685,7 +698,7 @@ with tabs[11]:
         angularaxis=dict(direction="clockwise", rotation=90, tickvals=month_starts,
                          ticktext=[dt.date(2000, m, 1).strftime("%b") for m in range(1, 13)],
                          gridcolor="rgba(242,193,78,.15)")))
-    st.plotly_chart(style(wheel, 560))
+    show_chart(style(wheel, 560))
     hits = sum(r in TARGETS for r in rr)
     today = dt.date.today()
     finding(f"{hits} of {ndays} days in {year} reduce to 3, 6 or 9 ({hits / ndays:.0%}; chance is 33%). "
@@ -723,7 +736,7 @@ with tabs[12]:
                 dict(label=str(k), method="animate", args=[[str(k)], dict(mode="immediate")]) for k in ks])])
         fig.update_xaxes(visible=False, range=[-1.1, 1.1])
         fig.update_yaxes(visible=False, range=[-1.1, 1.1], scaleanchor="x")
-        st.plotly_chart(style(fig, 620))
+        show_chart(style(fig, 620))
         finding("Each point connects to the point at its number times the multiplier. "
                 "×2 draws a heart shape (a cardioid), ×3 a two-lobed nephroid. "
                 "With 9 points and ×2 you get the vortex from Lens Ⅱ.")
@@ -736,7 +749,7 @@ with tabs[12]:
             colorscale=[[0, "#1b1813"], [1, GOLD]], showscale=False,
             x=list(range(1, M + 1)), y=list(range(1, M + 1))))
         fig.update_yaxes(autorange="reversed")
-        st.plotly_chart(style(fig, 560))
+        show_chart(style(fig, 560))
         if BASE == 10:
             finding(f"The times table with every answer reduced to one digit. Row 9 is all 9s. "
                     f"Rows 3 and 6 use only {sorted(set(z[2]))} and {sorted(set(z[5]))}. "
@@ -760,7 +773,7 @@ with tabs[12]:
                                                colorscale=[[0, BLUE], [1, GOLD]])))
         fig.update_xaxes(visible=False)
         fig.update_yaxes(visible=False, scaleanchor="x")
-        st.plotly_chart(style(fig, 560))
+        show_chart(style(fig, 560))
         finding(f"Every number is the sum of the two above it. Keep only the remainder after dividing by {mod} "
                 f"and triangles appear inside triangles, forever.")
 
@@ -779,7 +792,7 @@ with tabs[12]:
             line=dict(color=BLUE), marker=dict(size=12, color=[GOLD if v in TARGETS else GREY for v in seq + [seq[0]]])))
         wheel.update_layout(polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(range=[0, M + 1]),
                                        angularaxis=dict(direction="clockwise", rotation=90, showticklabels=False)))
-        st.plotly_chart(style(wheel, 560))
+        show_chart(style(wheel, 560))
         spots = [i + 1 for i, v in enumerate(seq) if v in TARGETS]
         finding(f"Fibonacci numbers (each the sum of the two before) reduce to a loop of {L}. "
                 f"3, 6 and 9 appear at positions {spots}."
@@ -874,7 +887,7 @@ def number_board(items, chance=1 / 3):
                            marker_color=[GOLD if k in TARGETS else GREY for k in range(1, 10)]))
     fig.add_hline(y=len(rows) / 9, line=dict(color=RED, dash="dot"), annotation_text="chance")
     fig.update_layout(xaxis_title="Digital root", yaxis_title="Count")
-    st.plotly_chart(style(fig, 320))
+    show_chart(style(fig, 320))
     hits = sum(r["Digital root"] in TARGETS for r in rows)
     p = binom_tail(hits, len(rows), chance)
     finding(f"{hits} of {len(rows)} reduce to 3, 6 or 9 ({hits / len(rows):.0%}; chance is 33%). "
@@ -935,7 +948,7 @@ with tabs[15]:
     fig = go.Figure(go.Bar(x=[str(k) for k in keys], y=[counts[k] for k in keys],
                            marker_color=[GOLD if k in TARGETS or k == 33 else GREY for k in keys]))
     fig.update_layout(xaxis_title="Life path", yaxis_title="Birthdays 1900–1999")
-    st.plotly_chart(style(fig, 320))
+    show_chart(style(fig, 320))
     finding("Life paths aren't spread evenly: some numbers are more common simply because of how dates add up. "
             "That's why every claim here needs a control.")
 
@@ -1141,7 +1154,7 @@ with tabs[17]:
                                                                         for r in res]))
         fig.update_layout(barmode="group", xaxis_title="Numbers that fit", yaxis_autorange="reversed",
                           legend=dict(orientation="h", y=-0.15))
-        st.plotly_chart(style(fig, 520))
+        show_chart(style(fig, 520))
 
         st.dataframe([{"Lens": r["lens"], "Fit": f"{r['hits']} of {r['n']}", "Chance expects": round(r["expected"], 1),
                        "Odds by luck": f"{r['p']:.1%}", "After questioning": f"{r['p_adj']:.1%}",
@@ -1191,7 +1204,7 @@ with tabs[17]:
             hist = go.Figure(go.Histogram(x=ctrl, marker_color="#4a3f2a", name="Random worlds"))
             hist.add_vline(x=obs, line=dict(color=GOLD, width=3), annotation_text="our world")
             hist.update_layout(xaxis_title="Matching pairs", yaxis_title="Random worlds")
-            st.plotly_chart(style(hist, 320))
+            show_chart(style(hist, 320))
             finding(f"Our world has {obs} matching pairs. Random worlds matched or beat that {beat:.0%} of the time. "
                     + ("That's a genuine signal." if beat < 0.05 else "So far, chance explains it."))
             pairs = []
